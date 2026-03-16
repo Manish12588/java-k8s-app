@@ -22,14 +22,32 @@ jobs:
             - name: Resolve Dependencies
               run: mvn dependency:resolve --no-transfer-progress
 
-            # Fails the build if "high" or "critical" vulnerabilities are found
-            - name: Run OWASP Dependency Check
-              run: mvn dependency-check:check --no-transfer-progress
+             # Scans pom.xml for known vulnerabilities — no API key needed
+            - name: Run Trivy Vulnerability Scan
+              uses: aquasecurity/trivy-action@master
+              with:
+                scan-type: 'fs'
+                scan-ref: '.'
+                severity: 'HIGH,CRITICAL'
+                exit-code: '1'
+                format: 'table'
             
-            - name: Upload Dependency Check Report
+            - name: Upload Trivy Report
               if: always()
               uses: actions/upload-artifact@v4
               with:
-                name: dependency-check-report
-                path: target/dependency-check-report.html
+                name: trivy-report
+                path: trivy-results.txt
                 retention-days: 7
+                
+            # Fails the build if "high" or "critical" vulnerabilities are found
+            #- name: Run OWASP Dependency Check
+            #  run: mvn dependency-check:check --no-transfer-progress
+            
+            #- name: Upload Dependency Check Report
+            #  if: always()
+            #  uses: actions/upload-artifact@v4
+            #  with:
+            #    name: dependency-check-report
+            #    path: target/dependency-check-report.html
+            #    retention-days: 7
