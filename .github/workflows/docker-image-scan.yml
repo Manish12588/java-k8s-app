@@ -4,6 +4,9 @@ name: Image Scanner
 on: 
     workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
     image-scanner:
         runs-on: ubuntu-latest

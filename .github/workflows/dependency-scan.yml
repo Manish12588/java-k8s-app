@@ -3,6 +3,8 @@ name: Dependency Scan
 on:
     workflow_call:
     #workflow_dispatch:
+permissions:
+  contents: read
 
 jobs:
     dependency-check:

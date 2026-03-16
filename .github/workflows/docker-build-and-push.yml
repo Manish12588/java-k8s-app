@@ -6,6 +6,10 @@ on:
     #        - main
     #workflow_dispatch:
     workflow_call:
+
+permissions:
+  contents: write
+  actions: read
       
 jobs:
     docker-build-and-push:
