@@ -22,6 +22,14 @@ jobs:
             - name: Resolve Dependencies
               run: mvn dependency:resolve --no-transfer-progress
 
+            # Cache Trivy DB so it doesn't re-download every run
+            - name: Cache Trivy DB
+              uses: actions/cache@v4
+              with:
+                path: .cache/trivy
+                key: trivy-db-${{ github.run_id }}
+                restore-keys: trivy-db-
+
              # Scans pom.xml for known vulnerabilities — no API key needed
             - name: Run Trivy Vulnerability Scan
               uses: aquasecurity/trivy-action@master
@@ -32,6 +40,7 @@ jobs:
                 exit-code: '1'
                 format: 'table'
                 output: 'trivy-results.txt'
+                cache-dir: '.cache/trivy'
             
             - name: Upload Trivy Report
               if: always()
