@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.5</version>  <!-- was 3.2.0 — fixes all 19 vulnerabilities -->
+    <version>3.4.5</version>
   </parent>
 
   <groupId>com.k8spractice</groupId>
