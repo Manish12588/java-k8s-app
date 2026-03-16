@@ -31,6 +31,7 @@ jobs:
                 severity: 'HIGH,CRITICAL'
                 exit-code: '1'
                 format: 'table'
+                output: 'trivy-results.txt'
             
             - name: Upload Trivy Report
               if: always()
@@ -39,7 +40,7 @@ jobs:
                 name: trivy-report
                 path: trivy-results.txt
                 retention-days: 7
-                
+
             # Fails the build if "high" or "critical" vulnerabilities are found
             #- name: Run OWASP Dependency Check
             #  run: mvn dependency-check:check --no-transfer-progress
