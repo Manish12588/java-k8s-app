@@ -19,20 +19,10 @@ jobs:
                 key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
                 script: |
                  echo "Installing required packages & folders"
-                 sudo apt-get update && sudo apt-get install docker.io docker-compose-v2 -y
+                 sudo apt-get update && sudo apt-get install docker.io -y
                  sudo usermod -aG docker $USER
-                 mkdir -p ~/calorie-app/nginx
-                 mkdir -p ~/calorie-app/frontend
-
-            - name: Copy the docker-compose file
-              uses: appleboy/scp-action@v0.1.7
-              with:
-                host: ${{ secrets.EC2_SSH_HOST }}
-                username: ${{ secrets.EC2_SSH_USER }}
-                key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-                source: "docker-compose.yml,nginx/,frontend/"
-                target: ~/calorie-app
-                
+                 mkdir -p ~/java-k8s-app
+              
             - name: SSH to Prod server & run the app
               uses: appleboy/ssh-action@v1.0.3
               with:
@@ -41,13 +31,28 @@ jobs:
                 key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
                 script: |
                  echo "Running App"
-                 cd ~/calorie-app
+                 cd ~/java-k8s-app
                  cat > .env << 'EOF'
                  DOCKERHUB_USER=${{ secrets.DOCKERHUB_USERNAME }}
                  DOCKER_TAG=${{ github.sha }}
                  EOF
                  cat .env
                  echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-                 docker compose pull
-                 docker compose down
-                 docker compose up -d --force-recreate
+                 echo "Pulling latest image"
+                 docker pull ${{ secrets.DOCKERHUB_USERNAME }}/java-k8s-app:${{ github.sha }}
+                 echo "Stopping existing container"
+                 docker stop java-k8s-app || true
+                 docker rm java-k8s-app || true
+                 echo "Starting New Container"
+                 docker run -d \
+                    --name java-k8s-app \
+                    --restart always \
+                    -p 8080:8080 \
+                    -e POD_NAMESPACE=prod \
+                    -e NODE_NAME=$(hostname) \
+                    ${{ secrets.DOCKERHUB_USERNAME }}/java-k8s-app:${{ github.sha }}
+
+                 echo "Cleaning up old images"
+                 docker image prune -f
+                 echo "Container status"
+                 docker ps | grep java-k8s-app
