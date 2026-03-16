@@ -1,1 +1,48 @@
+# Linting and SAST (Static Application Security Testing) scan
+# Lint - Checkstyle (Equivalent to ESLint)
+# SAST - SpotBugs (Equivalent to njsscan)
+
 name: Code Quality Check
+
+on:    
+    workflow_dispatch:
+    #workflow_call:
+      
+jobs:
+  validate:
+    name: Lint and SAST Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
+      # 1. LINT: Checks for code style and syntax issues in your Java files
+      - name: Run Checkstyle
+        run: mvn checkstyle:check --no-transfer-progress
+
+      # 2. SAST: Scans your actual code for security flaws (like )
+      - name: Run SpotBugs (Static Analysis)
+        run: mvn spotbugs:check --no-transfer-progress
+
+      - name: Upload Checkstyle Report
+        if: always()  
+        uses: actions/upload-artifact@v4
+        with:
+            name: checkstyle-report
+            path: target/checkstyle-result.xml
+            retention-days: 7
+
+      - name: Upload SpotBugs Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+            name: spotbugs-report
+            path: target/spotbugsXml.xml
+            retention-days: 7

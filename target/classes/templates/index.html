@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Java App — K8s Practice</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .page { max-width: 560px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 28px; }
+    .lang-badge {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 26px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+    .subtitle { color: #777; font-size: 14px; }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid #f2f2f2;
+      font-size: 13.5px;
+    }
+    .row:last-child { border-bottom: none; }
+    .row-key { color: #888; }
+    .row-val { font-weight: 600; color: #1a1a2e; }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .metric-label { font-size: 11px; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .metric-value { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+    .metric-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+    .bar-wrap { background: #f0f0f0; border-radius: 6px; height: 6px; margin-top: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 6px; background: #4caf50; transition: width 0.3s; }
+    .bar-fill.warn { background: #ff9800; }
+    .bar-fill.danger { background: #f44336; }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: #4caf50;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .footer { text-align: center; font-size: 12px; color: #bbb; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="lang-badge">JAVA</div>
+    <h1>Java K8s App</h1>
+    <p class="subtitle"><span class="status-dot"></span>Running inside Kubernetes</p>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="card">
+    <p class="card-title">Tech Stack</p>
+    <div class="row"><span class="row-key">Language</span><span class="row-val" th:text="${language}">Java 17</span></div>
+    <div class="row"><span class="row-key">Framework</span><span class="row-val" th:text="${framework}">Spring Boot 3.2</span></div>
+    <div class="row"><span class="row-key">Server</span><span class="row-val" th:text="${server}">Embedded Tomcat</span></div>
+    <div class="row"><span class="row-key">Port</span><span class="row-val" th:text="${port}">8080</span></div>
+    <div class="row"><span class="row-key">Java Version</span><span class="row-val" th:text="${javaVersion}">17</span></div>
+    <div class="row"><span class="row-key">OS / Arch</span><span class="row-val" th:text="${os}">Linux amd64</span></div>
+  </div>
+
+  <!-- Pod Info -->
+  <div class="card">
+    <p class="card-title">Pod Info</p>
+    <div class="row"><span class="row-key">Pod Name</span><span class="row-val" th:text="${hostname}">java-app-xxxx</span></div>
+    <div class="row"><span class="row-key">Pod IP</span><span class="row-val" th:text="${podIp}">10.244.x.x</span></div>
+    <div class="row"><span class="row-key">Namespace</span><span class="row-val" th:text="${namespace}">default</span></div>
+    <div class="row"><span class="row-key">Node</span><span class="row-val" th:text="${nodeName}">worker-1</span></div>
+    <div class="row"><span class="row-key">Uptime</span><span class="row-val" th:text="${uptime}">0h 0m 0s</span></div>
+  </div>
+
+  <!-- System Health -->
+  <div class="health-grid">
+    <div class="metric">
+      <div class="metric-label">Heap Used</div>
+      <div class="metric-value" th:text="${heapUsed} + ' MB'">64 MB</div>
+      <div class="metric-sub" th:text="'of ' + ${heapMax} + ' MB max'">of 256 MB max</div>
+      <div class="bar-wrap">
+        <div class="bar-fill"
+             th:classappend="${heapPct > 80 ? 'danger' : (heapPct > 60 ? 'warn' : '')}"
+             th:style="'width:' + ${heapPct} + '%'"></div>
+      </div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">CPU Load</div>
+      <div class="metric-value" th:text="${cpuLoad}">0.10</div>
+      <div class="metric-sub">system avg load</div>
+    </div>
+  </div>
+
+  <p class="footer">Refresh page to update health stats</p>
+</div>
+</body>
+</html>
