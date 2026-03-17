@@ -97,7 +97,10 @@
   <div class="header">
     <div class="lang-badge">JAVA</div>
     <h1>Java K8s App</h1>
-    <p class="subtitle"><span class="status-dot"></span>Running inside Kubernetes</p>
+    <p class="subtitle">
+      <span class="status-dot"></span>
+      Running on <span th:text="${envType}">Unknown</span>
+    </p>
   </div>
 
   <!-- Tech Stack -->
@@ -111,14 +114,30 @@
     <div class="row"><span class="row-key">OS / Arch</span><span class="row-val" th:text="${os}">Linux amd64</span></div>
   </div>
 
-  <!-- Pod Info -->
+  <!-- Environment Info — dynamic title and fields -->
   <div class="card">
-    <p class="card-title">Pod Info</p>
-    <div class="row"><span class="row-key">Pod Name</span><span class="row-val" th:text="${hostname}">java-app-xxxx</span></div>
-    <div class="row"><span class="row-key">Pod IP</span><span class="row-val" th:text="${podIp}">10.244.x.x</span></div>
-    <div class="row"><span class="row-key">Namespace</span><span class="row-val" th:text="${namespace}">default</span></div>
-    <div class="row"><span class="row-key">Node</span><span class="row-val" th:text="${nodeName}">worker-1</span></div>
-    <div class="row"><span class="row-key">Uptime</span><span class="row-val" th:text="${uptime}">0h 0m 0s</span></div>
+    <p class="card-title" th:text="${envType} + ' Info'">ENV Info</p>
+    <div class="row">
+      <span class="row-key">Hostname</span>
+      <span class="row-val" th:text="${hostname}">hostname</span>
+    </div>
+    <div class="row">
+      <span class="row-key">IP</span>
+      <span class="row-val" th:text="${podIp}">0.0.0.0</span>
+    </div>
+    <div class="row">
+      <span class="row-key">Uptime</span>
+      <span class="row-val" th:text="${uptime}">0h 0m 0s</span>
+    </div>
+    <!-- Only shown in Kubernetes -->
+    <div class="row" th:if="${namespace != null}">
+      <span class="row-key">Namespace</span>
+      <span class="row-val" th:text="${namespace}">default</span>
+    </div>
+    <div class="row" th:if="${nodeName != null}">
+      <span class="row-key">Node</span>
+      <span class="row-val" th:text="${nodeName}">worker-1</span>
+    </div>
   </div>
 
   <!-- System Health -->
